@@ -1,238 +1,71 @@
-import {CartForm, Money} from '@shopify/hydrogen';
-import {useEffect, useRef} from 'react';
-import {useFetcher} from 'react-router';
+import { CartForm, Money } from '@shopify/hydrogen';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useAside } from './Aside';
 
-/**
- * @param {CartSummaryProps}
- */
-export function CartSummary({cart, layout}) {
-  const className =
-    layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
+export function CartSummary({ cart, layout }) {
+  const { close } = useAside();
 
   return (
-    <div aria-labelledby="cart-summary" className={className}>
-      <h4>Totals</h4>
-      <dl className="cart-subtotal">
-        <dt>Subtotal</dt>
-        <dd>
-          {cart?.cost?.subtotalAmount?.amount ? (
-            <Money data={cart?.cost?.subtotalAmount} />
-          ) : (
-            '-'
-          )}
-        </dd>
-      </dl>
-      <CartDiscounts discountCodes={cart?.discountCodes} />
-      <CartGiftCard giftCardCodes={cart?.appliedGiftCards} />
-      <CartCheckoutActions checkoutUrl={cart?.checkoutUrl} />
-    </div>
-  );
-}
-
-/**
- * @param {{checkoutUrl?: string}}
- */
-function CartCheckoutActions({checkoutUrl}) {
-  if (!checkoutUrl) return null;
-
-  return (
-    <div>
-      <a href={checkoutUrl} target="_self">
-        <p>Continue to Checkout &rarr;</p>
-      </a>
-      <br />
-    </div>
-  );
-}
-
-/**
- * @param {{
- *   discountCodes?: CartApiQueryFragment['discountCodes'];
- * }}
- */
-function CartDiscounts({discountCodes}) {
-  const codes =
-    discountCodes
-      ?.filter((discount) => discount.applicable)
-      ?.map(({code}) => code) || [];
-
-  return (
-    <div>
-      {/* Have existing discount, display it with a remove option */}
-      <dl hidden={!codes.length}>
-        <div>
-          <dt>Discount(s)</dt>
-          <UpdateDiscountForm>
-            <div className="cart-discount">
-              <code>{codes?.join(', ')}</code>
-              &nbsp;
-              <button>Remove</button>
+    <div className="space-y-4">
+      {/* Discount codes */}
+      {cart?.discountCodes?.length > 0 && (
+        <div className="space-y-2">
+          {cart.discountCodes.map((discount) => (
+            <div key={discount.code} className="flex items-center justify-between text-sm text-green-600">
+              <span className="flex items-center gap-2">
+                <span className="font-medium">{discount.code}</span>
+              </span>
+              <CartForm
+                route="/cart"
+                action={CartForm.ACTIONS.DiscountCodesUpdate}
+                inputs={{ discountCodes: [] }}
+              >
+                <button
+                  type="submit"
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  <span className="sr-only">Remove discount {discount.code}</span>
+                </button>
+              </CartForm>
             </div>
-          </UpdateDiscountForm>
-        </div>
-      </dl>
-
-      {/* Show an input to apply a discount */}
-      <UpdateDiscountForm discountCodes={codes}>
-        <div>
-          <input type="text" name="discountCode" placeholder="Discount code" />
-          &nbsp;
-          <button type="submit">Apply</button>
-        </div>
-      </UpdateDiscountForm>
-    </div>
-  );
-}
-
-/**
- * @param {{
- *   discountCodes?: string[];
- *   children: React.ReactNode;
- * }}
- */
-function UpdateDiscountForm({discountCodes, children}) {
-  return (
-    <CartForm
-      route="/cart"
-      action={CartForm.ACTIONS.DiscountCodesUpdate}
-      inputs={{
-        discountCodes: discountCodes || [],
-      }}
-    >
-      {children}
-    </CartForm>
-  );
-}
-
-/**
- * @param {{
- *   giftCardCodes: CartApiQueryFragment['appliedGiftCards'] | undefined;
- * }}
- */
-function CartGiftCard({giftCardCodes}) {
-  const appliedGiftCardCodes = useRef([]);
-  const giftCardCodeInput = useRef(null);
-  const giftCardAddFetcher = useFetcher({key: 'gift-card-add'});
-
-  // Clear the gift card code input after the gift card is added
-  useEffect(() => {
-    if (giftCardAddFetcher.data) {
-      giftCardCodeInput.current.value = '';
-    }
-  }, [giftCardAddFetcher.data]);
-
-  function saveAppliedCode(code) {
-    const formattedCode = code.replace(/\s/g, ''); // Remove spaces
-    if (!appliedGiftCardCodes.current.includes(formattedCode)) {
-      appliedGiftCardCodes.current.push(formattedCode);
-    }
-  }
-
-  return (
-    <div>
-      {/* Display applied gift cards with individual remove buttons */}
-      {giftCardCodes && giftCardCodes.length > 0 && (
-        <dl>
-          <dt>Applied Gift Card(s)</dt>
-          {giftCardCodes.map((giftCard) => (
-            <RemoveGiftCardForm key={giftCard.id} giftCardId={giftCard.id}>
-              <div className="cart-discount">
-                <code>***{giftCard.lastCharacters}</code>
-                &nbsp;
-                <Money data={giftCard.amountUsed} />
-                &nbsp;
-                <button type="submit">Remove</button>
-              </div>
-            </RemoveGiftCardForm>
           ))}
-        </dl>
+        </div>
       )}
 
-      {/* Show an input to apply a gift card */}
-      <UpdateGiftCardForm
-        giftCardCodes={appliedGiftCardCodes.current}
-        saveAppliedCode={saveAppliedCode}
-        fetcherKey="gift-card-add"
-      >
-        <div>
-          <input
-            type="text"
-            name="giftCardCode"
-            placeholder="Gift card code"
-            ref={giftCardCodeInput}
-          />
-          &nbsp;
-          <button type="submit" disabled={giftCardAddFetcher.state !== 'idle'}>
-            Apply
+      {/* Subtotal */}
+      <div className="flex justify-between text-base font-medium text-gray-900">
+        <p>Subtotal</p>
+        <Money data={cart.cost.subtotalAmount} />
+      </div>
+
+      <p className="text-sm text-gray-500">
+        Shipping and taxes calculated at checkout.
+      </p>
+
+      {/* Checkout button - redirects to Shopify Checkout */}
+      <div className="mt-6">
+        <a
+          href={cart.checkoutUrl}
+          className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
+        >
+          Checkout
+        </a>
+      </div>
+
+      {/* Continue shopping */}
+      {layout === 'aside' && (
+        <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
+          <button
+            type="button"
+            onClick={close}
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Continue Shopping
+            <span aria-hidden="true"> &rarr;</span>
           </button>
         </div>
-      </UpdateGiftCardForm>
+      )}
     </div>
   );
 }
-
-/**
- * @param {{
- *   giftCardCodes?: string[];
- *   saveAppliedCode?: (code: string) => void;
- *   fetcherKey?: string;
- *   children: React.ReactNode;
- * }}
- */
-function UpdateGiftCardForm({
-  giftCardCodes,
-  saveAppliedCode,
-  fetcherKey,
-  children,
-}) {
-  return (
-    <CartForm
-      fetcherKey={fetcherKey}
-      route="/cart"
-      action={CartForm.ACTIONS.GiftCardCodesUpdate}
-      inputs={{
-        giftCardCodes: giftCardCodes || [],
-      }}
-    >
-      {(fetcher) => {
-        const code = fetcher.formData?.get('giftCardCode');
-        if (code && saveAppliedCode) {
-          saveAppliedCode(code);
-        }
-        return children;
-      }}
-    </CartForm>
-  );
-}
-
-/**
- * @param {{
- *   giftCardId: string;
- *   children: React.ReactNode;
- * }}
- */
-function RemoveGiftCardForm({giftCardId, children}) {
-  return (
-    <CartForm
-      route="/cart"
-      action={CartForm.ACTIONS.GiftCardCodesRemove}
-      inputs={{
-        giftCardCodes: [giftCardId],
-      }}
-    >
-      {children}
-    </CartForm>
-  );
-}
-
-/**
- * @typedef {{
- *   cart: OptimisticCart<CartApiQueryFragment | null>;
- *   layout: CartLayout;
- * }} CartSummaryProps
- */
-
-/** @typedef {import('storefrontapi.generated').CartApiQueryFragment} CartApiQueryFragment */
-/** @typedef {import('~/components/CartMain').CartLayout} CartLayout */
-/** @typedef {import('@shopify/hydrogen').OptimisticCart} OptimisticCart */
-/** @typedef {import('react-router').FetcherWithComponents} FetcherWithComponents */

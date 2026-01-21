@@ -1,167 +1,89 @@
-import {CartForm, Image} from '@shopify/hydrogen';
-import {useVariantUrl} from '~/lib/variants';
-import {Link} from 'react-router';
-import {ProductPrice} from './ProductPrice';
-import {useAside} from './Aside';
+import { CartForm, Image, Money } from '@shopify/hydrogen';
+import { Link } from 'react-router';
 
-/**
- * A single line item in the cart. It displays the product image, title, price.
- * It also provides controls to update the quantity or remove the line item.
- * @param {{
- *   layout: CartLayout;
- *   line: CartLine;
- * }}
- */
-export function CartLineItem({layout, line}) {
-  const {id, merchandise} = line;
-  const {product, title, image, selectedOptions} = merchandise;
-  const lineItemUrl = useVariantUrl(product.handle, selectedOptions);
-  const {close} = useAside();
+export function CartLineItem({ line, layout }) {
+  const { merchandise, quantity } = line;
 
   return (
-    <li key={id} className="cart-line">
-      {image && (
-        <Image
-          alt={title}
-          aspectRatio="1/1"
-          data={image}
-          height={100}
-          loading="lazy"
-          width={100}
-        />
-      )}
+    <li className="flex py-6 px-4 sm:px-6">
+      {/* Product image */}
+      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+        {merchandise.image && (
+          <Image
+            data={merchandise.image}
+            className="h-full w-full object-cover object-center"
+            width={96}
+            height={96}
+          />
+        )}
+      </div>
 
-      <div>
-        <Link
-          prefetch="intent"
-          to={lineItemUrl}
-          onClick={() => {
-            if (layout === 'aside') {
-              close();
-            }
-          }}
-        >
-          <p>
-            <strong>{product.title}</strong>
-          </p>
-        </Link>
-        <ProductPrice price={line?.cost?.totalAmount} />
-        <ul>
-          {selectedOptions.map((option) => (
-            <li key={option.name}>
-              <small>
-                {option.name}: {option.value}
-              </small>
-            </li>
-          ))}
-        </ul>
-        <CartLineQuantity line={line} />
+      {/* Product details */}
+      <div className="ml-4 flex flex-1 flex-col">
+        <div>
+          <div className="flex justify-between text-base font-medium text-gray-900">
+            <h3>
+              <Link to={`/products/${merchandise.product.handle}`}>
+                {merchandise.product.title}
+              </Link>
+            </h3>
+            <div className="ml-4">
+              <Money data={line.cost.totalAmount} />
+            </div>
+          </div>
+          <p className="mt-1 text-sm text-gray-500">{merchandise.title}</p>
+        </div>
+
+        <div className="flex flex-1 items-end justify-between text-sm">
+          {/* Quantity selector */}
+          <div className="text-gray-500">
+            <label htmlFor={`quantity-${line.id}`} className="sr-only">
+              Quantity, {quantity}
+            </label>
+            <CartForm
+              route="/cart"
+              action={CartForm.ACTIONS.LinesUpdate}
+              inputs={{ lines: [{ id: line.id, quantity: quantity }] }}
+            >
+              <select
+                id={`quantity-${line.id}`}
+                name="quantity"
+                value={quantity}
+                onChange={(e) => {
+                  const form = e.target.closest('form');
+                  const input = form?.querySelector('input[name="quantity"]');
+                  if (input) input.value = e.target.value;
+                  form?.requestSubmit();
+                }}
+                className="rounded-md border-gray-300 text-left text-base font-medium text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                  <option key={num} value={num}>
+                    Qty {num}
+                  </option>
+                ))}
+              </select>
+              <input type="hidden" name="quantity" value={quantity} />
+            </CartForm>
+          </div>
+
+          {/* Remove button */}
+          <div className="flex">
+            <CartForm
+              route="/cart"
+              action={CartForm.ACTIONS.LinesRemove}
+              inputs={{ lineIds: [line.id] }}
+            >
+              <button
+                type="submit"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Remove
+              </button>
+            </CartForm>
+          </div>
+        </div>
       </div>
     </li>
   );
 }
-
-/**
- * Provides the controls to update the quantity of a line item in the cart.
- * These controls are disabled when the line item is new, and the server
- * hasn't yet responded that it was successfully added to the cart.
- * @param {{line: CartLine}}
- */
-function CartLineQuantity({line}) {
-  if (!line || typeof line?.quantity === 'undefined') return null;
-  const {id: lineId, quantity, isOptimistic} = line;
-  const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
-  const nextQuantity = Number((quantity + 1).toFixed(0));
-
-  return (
-    <div className="cart-line-quantity">
-      <small>Quantity: {quantity} &nbsp;&nbsp;</small>
-      <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
-        <button
-          aria-label="Decrease quantity"
-          disabled={quantity <= 1 || !!isOptimistic}
-          name="decrease-quantity"
-          value={prevQuantity}
-        >
-          <span>&#8722; </span>
-        </button>
-      </CartLineUpdateButton>
-      &nbsp;
-      <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
-        <button
-          aria-label="Increase quantity"
-          name="increase-quantity"
-          value={nextQuantity}
-          disabled={!!isOptimistic}
-        >
-          <span>&#43;</span>
-        </button>
-      </CartLineUpdateButton>
-      &nbsp;
-      <CartLineRemoveButton lineIds={[lineId]} disabled={!!isOptimistic} />
-    </div>
-  );
-}
-
-/**
- * A button that removes a line item from the cart. It is disabled
- * when the line item is new, and the server hasn't yet responded
- * that it was successfully added to the cart.
- * @param {{
- *   lineIds: string[];
- *   disabled: boolean;
- * }}
- */
-function CartLineRemoveButton({lineIds, disabled}) {
-  return (
-    <CartForm
-      fetcherKey={getUpdateKey(lineIds)}
-      route="/cart"
-      action={CartForm.ACTIONS.LinesRemove}
-      inputs={{lineIds}}
-    >
-      <button disabled={disabled} type="submit">
-        Remove
-      </button>
-    </CartForm>
-  );
-}
-
-/**
- * @param {{
- *   children: React.ReactNode;
- *   lines: CartLineUpdateInput[];
- * }}
- */
-function CartLineUpdateButton({children, lines}) {
-  const lineIds = lines.map((line) => line.id);
-
-  return (
-    <CartForm
-      fetcherKey={getUpdateKey(lineIds)}
-      route="/cart"
-      action={CartForm.ACTIONS.LinesUpdate}
-      inputs={{lines}}
-    >
-      {children}
-    </CartForm>
-  );
-}
-
-/**
- * Returns a unique key for the update action. This is used to make sure actions modifying the same line
- * items are not run concurrently, but cancel each other. For example, if the user clicks "Increase quantity"
- * and "Decrease quantity" in rapid succession, the actions will cancel each other and only the last one will run.
- * @returns
- * @param {string[]} lineIds - line ids affected by the update
- */
-function getUpdateKey(lineIds) {
-  return [CartForm.ACTIONS.LinesUpdate, ...lineIds].join('-');
-}
-
-/** @typedef {OptimisticCartLine<CartApiQueryFragment>} CartLine */
-
-/** @typedef {import('@shopify/hydrogen/storefront-api-types').CartLineUpdateInput} CartLineUpdateInput */
-/** @typedef {import('~/components/CartMain').CartLayout} CartLayout */
-/** @typedef {import('@shopify/hydrogen').OptimisticCartLine} OptimisticCartLine */
-/** @typedef {import('storefrontapi.generated').CartApiQueryFragment} CartApiQueryFragment */

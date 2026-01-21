@@ -12,15 +12,15 @@ export function ProductForm({productOptions, selectedVariant}) {
   const navigate = useNavigate();
   const {open} = useAside();
   return (
-    <div className="product-form">
+    <div className="space-y-6">
       {productOptions.map((option) => {
         // If there is only a single value in the option values, don't display the option
         if (option.optionValues.length === 1) return null;
 
         return (
-          <div className="product-options" key={option.name}>
-            <h5>{option.name}</h5>
-            <div className="product-options-grid">
+          <div key={option.name}>
+            <h3 className="text-sm font-medium text-gray-900">{option.name}</h3>
+            <div className="mt-4 flex flex-wrap gap-2">
               {option.optionValues.map((value) => {
                 const {
                   name,
@@ -33,6 +33,12 @@ export function ProductForm({productOptions, selectedVariant}) {
                   swatch,
                 } = value;
 
+                const className = `relative flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
+                  selected
+                    ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
+                    : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-50'
+                } ${!available ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`;
+
                 if (isDifferentProduct) {
                   // SEO
                   // When the variant is a combined listing child product
@@ -40,18 +46,12 @@ export function ProductForm({productOptions, selectedVariant}) {
                   // as an anchor tag
                   return (
                     <Link
-                      className="product-options-item"
+                      className={className}
                       key={option.name + name}
                       prefetch="intent"
                       preventScrollReset
                       replace
                       to={`/products/${handle}?${variantUriQuery}`}
-                      style={{
-                        border: selected
-                          ? '1px solid black'
-                          : '1px solid transparent',
-                        opacity: available ? 1 : 0.3,
-                      }}
                     >
                       <ProductOptionSwatch swatch={swatch} name={name} />
                     </Link>
@@ -65,16 +65,8 @@ export function ProductForm({productOptions, selectedVariant}) {
                   return (
                     <button
                       type="button"
-                      className={`product-options-item${
-                        exists && !selected ? ' link' : ''
-                      }`}
+                      className={className}
                       key={option.name + name}
-                      style={{
-                        border: selected
-                          ? '1px solid black'
-                          : '1px solid transparent',
-                        opacity: available ? 1 : 0.3,
-                      }}
                       disabled={!exists}
                       onClick={() => {
                         if (!selected) {
@@ -91,7 +83,6 @@ export function ProductForm({productOptions, selectedVariant}) {
                 }
               })}
             </div>
-            <br />
           </div>
         );
       })}
@@ -128,17 +119,21 @@ function ProductOptionSwatch({swatch, name}) {
   const image = swatch?.image?.previewImage?.url;
   const color = swatch?.color;
 
-  if (!image && !color) return name;
+  if (!image && !color) return <span>{name}</span>;
 
   return (
     <div
       aria-label={name}
-      className="product-option-label-swatch"
+      className="flex items-center justify-center"
       style={{
         backgroundColor: color || 'transparent',
       }}
     >
-      {!!image && <img src={image} alt={name} />}
+      {image ? (
+        <img src={image} alt={name} className="h-full w-full object-cover" />
+      ) : (
+        <span className="sr-only">{name}</span>
+      )}
     </div>
   );
 }

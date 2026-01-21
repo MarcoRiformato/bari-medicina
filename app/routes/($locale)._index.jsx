@@ -1,13 +1,13 @@
-import {Await, useLoaderData, Link} from 'react-router';
-import {Suspense} from 'react';
-import {Image} from '@shopify/hydrogen';
-import {ProductItem} from '~/components/ProductItem';
+import { Await, useLoaderData, Link } from 'react-router';
+import { Suspense } from 'react';
+import { Image } from '@shopify/hydrogen';
+import { ProductItem } from '~/components/ProductItem';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: 'Hydrogen | Home'}];
+  return [{ title: 'Hydrogen | Home' }];
 };
 
 /**
@@ -20,7 +20,7 @@ export async function loader(args) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return { ...deferredData, ...criticalData };
 }
 
 /**
@@ -28,8 +28,8 @@ export async function loader(args) {
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  * @param {Route.LoaderArgs}
  */
-async function loadCriticalData({context}) {
-  const [{collections}] = await Promise.all([
+async function loadCriticalData({ context }) {
+  const [{ collections }] = await Promise.all([
     context.storefront.query(FEATURED_COLLECTION_QUERY),
     // Add other queries here, so that they are loaded in parallel
   ]);
@@ -45,7 +45,7 @@ async function loadCriticalData({context}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData({ context }) {
   const recommendedProducts = context.storefront
     .query(RECOMMENDED_PRODUCTS_QUERY)
     .catch((error) => {
@@ -63,7 +63,7 @@ export default function Homepage() {
   /** @type {LoaderReturnData} */
   const data = useLoaderData();
   return (
-    <div className="home">
+    <div className="bg-white">
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
     </div>
@@ -75,20 +75,30 @@ export default function Homepage() {
  *   collection: FeaturedCollectionFragment;
  * }}
  */
-function FeaturedCollection({collection}) {
+function FeaturedCollection({ collection }) {
   if (!collection) return null;
   const image = collection?.image;
+
   return (
     <Link
-      className="featured-collection"
       to={`/collections/${collection.handle}`}
+      prefetch="intent"
+      className="relative block overflow-hidden"
     >
       {image && (
-        <div className="featured-collection-image">
-          <Image data={image} sizes="100vw" />
+        <div className="aspect-h-2 aspect-w-3 w-full overflow-hidden sm:aspect-h-1 sm:aspect-w-2 lg:aspect-h-1 lg:aspect-w-1">
+          <Image
+            data={image}
+            sizes="100vw"
+            className="h-full w-full object-cover object-center"
+          />
         </div>
       )}
-      <h1>{collection.title}</h1>
+      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-black/20">
+        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          {collection.title}
+        </h1>
+      </div>
     </Link>
   );
 }
@@ -98,24 +108,28 @@ function FeaturedCollection({collection}) {
  *   products: Promise<RecommendedProductsQuery | null>;
  * }}
  */
-function RecommendedProducts({products}) {
+function RecommendedProducts({ products }) {
   return (
-    <div className="recommended-products">
-      <h2>Recommended Products</h2>
-      <Suspense fallback={<div>Loading...</div>}>
+    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <div className="sm:flex sm:items-baseline sm:justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+          Recommended Products
+        </h2>
+      </div>
+
+      <Suspense fallback={<div className="mt-6">Loading...</div>}>
         <Await resolve={products}>
           {(response) => (
-            <div className="recommended-products-grid">
+            <div className="mt-6 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-x-8">
               {response
                 ? response.products.nodes.map((product) => (
-                    <ProductItem key={product.id} product={product} />
-                  ))
+                  <ProductItem key={product.id} product={product} loading="eager" />
+                ))
                 : null}
             </div>
           )}
         </Await>
       </Suspense>
-      <br />
     </div>
   );
 }
@@ -148,6 +162,8 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     id
     title
     handle
+    vendor
+    description(truncateAt: 100)
     priceRange {
       minVariantPrice {
         amount

@@ -76,21 +76,37 @@ export default function Collection() {
   const {collection} = useLoaderData();
 
   return (
-    <div className="collection">
-      <h1>{collection.title}</h1>
-      <p className="collection-description">{collection.description}</p>
-      <PaginatedResourceSection
-        connection={collection.products}
-        resourcesClassName="products-grid"
-      >
-        {({node: product, index}) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            loading={index < 8 ? 'eager' : undefined}
-          />
-        )}
-      </PaginatedResourceSection>
+    <div className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Collection header */}
+        <div className="border-b border-gray-200 py-10">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            {collection.title}
+          </h1>
+          {collection.description && (
+            <p className="mt-4 text-base text-gray-500 max-w-3xl">
+              {collection.description}
+            </p>
+          )}
+        </div>
+
+        {/* Products grid */}
+        <div className="pt-12 pb-24">
+          <PaginatedResourceSection
+            connection={collection.products}
+            resourcesClassName="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 xl:gap-x-8"
+          >
+            {({node: product, index}) => (
+              <ProductItem
+                key={product.id}
+                product={product}
+                loading={index < 8 ? 'eager' : undefined}
+              />
+            )}
+          </PaginatedResourceSection>
+        </div>
+      </div>
+
       <Analytics.CollectionView
         data={{
           collection: {

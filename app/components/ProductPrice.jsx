@@ -8,11 +8,11 @@ import {Money} from '@shopify/hydrogen';
  */
 export function ProductPrice({price, compareAtPrice}) {
   return (
-    <div className="product-price">
+    <div className="text-2xl tracking-tight text-gray-900">
       {compareAtPrice ? (
-        <div className="product-price-on-sale">
+        <div className="flex items-center gap-2">
           {price ? <Money data={price} /> : null}
-          <s>
+          <s className="text-base text-gray-500">
             <Money data={compareAtPrice} />
           </s>
         </div>

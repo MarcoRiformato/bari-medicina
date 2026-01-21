@@ -13,6 +13,8 @@
   },
   "prettier": "@shopify/prettier-config",
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
     "@shopify/hydrogen": "2025.7.0",
     "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",

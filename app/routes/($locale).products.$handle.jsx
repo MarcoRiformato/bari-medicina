@@ -106,28 +106,48 @@ export default function Product() {
   const {title, descriptionHtml} = product;
 
   return (
-    <div className="product">
-      <ProductImage image={selectedVariant?.image} />
-      <div className="product-main">
-        <h1>{title}</h1>
-        <ProductPrice
-          price={selectedVariant?.price}
-          compareAtPrice={selectedVariant?.compareAtPrice}
-        />
-        <br />
-        <ProductForm
-          productOptions={productOptions}
-          selectedVariant={selectedVariant}
-        />
-        <br />
-        <br />
-        <p>
-          <strong>Description</strong>
-        </p>
-        <br />
-        <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        <br />
+    <div className="bg-white">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+        <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
+          {/* Image - left column */}
+          <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200">
+            <ProductImage image={selectedVariant?.image} />
+          </div>
+
+          {/* Product info - right column */}
+          <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              {title}
+            </h1>
+
+            <div className="mt-3">
+              <h2 className="sr-only">Product information</h2>
+              <ProductPrice
+                price={selectedVariant?.price}
+                compareAtPrice={selectedVariant?.compareAtPrice}
+              />
+            </div>
+
+            <div className="mt-6">
+              <ProductForm
+                productOptions={productOptions}
+                selectedVariant={selectedVariant}
+              />
+            </div>
+
+            {descriptionHtml && (
+              <div className="mt-10">
+                <h2 className="text-sm font-medium text-gray-900">Description</h2>
+                <div
+                  className="prose prose-sm mt-4 text-gray-500"
+                  dangerouslySetInnerHTML={{__html: descriptionHtml}}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
       <Analytics.ProductView
         data={{
           products: [
