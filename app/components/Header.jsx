@@ -1,11 +1,12 @@
-import { Suspense, useState } from 'react';
-import { Await, NavLink } from 'react-router';
+import { Fragment, useState } from 'react';
+import { NavLink } from 'react-router';
+import { Suspense } from 'react';
+import { Await } from 'react-router';
 import { useAnalytics, useOptimisticCart } from '@shopify/hydrogen';
 import {
   Dialog,
   DialogBackdrop,
   DialogPanel,
-  DialogTitle,
   Popover,
   PopoverButton,
   PopoverGroup,
@@ -16,22 +17,141 @@ import {
   TabPanel,
   TabPanels,
 } from '@headlessui/react';
-import {
-  Bars3Icon,
-  MagnifyingGlassIcon,
-  ShoppingBagIcon,
-  XMarkIcon,
-  UserIcon
-} from '@heroicons/react/24/outline';
+import { Bars3Icon, MagnifyingGlassIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAside } from './Aside';
 
-export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header }) {
-  const { open } = useAside();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const navigation = {
+  categories: [
+    {
+      id: 'women',
+      name: 'Women',
+      featured: [
+        {
+          name: 'New Arrivals',
+          href: '#',
+          imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/mega-menu-category-01.jpg',
+          imageAlt: 'Models sitting back to back, wearing Basic Tee in black and bone.',
+        },
+        {
+          name: 'Basic Tees',
+          href: '#',
+          imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/mega-menu-category-02.jpg',
+          imageAlt: 'Close up of Basic Tee fall bundle with off-white, ochre, olive, and black tees.',
+        },
+      ],
+      sections: [
+        {
+          id: 'clothing',
+          name: 'Clothing',
+          items: [
+            { name: 'Tops', href: '#' },
+            { name: 'Dresses', href: '#' },
+            { name: 'Pants', href: '#' },
+            { name: 'Denim', href: '#' },
+            { name: 'Sweaters', href: '#' },
+            { name: 'T-Shirts', href: '#' },
+            { name: 'Jackets', href: '#' },
+            { name: 'Activewear', href: '#' },
+            { name: 'Browse All', href: '#' },
+          ],
+        },
+        {
+          id: 'accessories',
+          name: 'Accessories',
+          items: [
+            { name: 'Watches', href: '#' },
+            { name: 'Wallets', href: '#' },
+            { name: 'Bags', href: '#' },
+            { name: 'Sunglasses', href: '#' },
+            { name: 'Hats', href: '#' },
+            { name: 'Belts', href: '#' },
+          ],
+        },
+        {
+          id: 'brands',
+          name: 'Brands',
+          items: [
+            { name: 'Full Nelson', href: '#' },
+            { name: 'My Way', href: '#' },
+            { name: 'Re-Arranged', href: '#' },
+            { name: 'Counterfeit', href: '#' },
+            { name: 'Significant Other', href: '#' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'men',
+      name: 'Men',
+      featured: [
+        {
+          name: 'New Arrivals',
+          href: '#',
+          imageSrc:
+            'https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-04-detail-product-shot-01.jpg',
+          imageAlt: 'Drawstring top with elastic loop closure and textured interior padding.',
+        },
+        {
+          name: 'Artwork Tees',
+          href: '#',
+          imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/category-page-02-image-card-06.jpg',
+          imageAlt:
+            'Three shirts in gray, white, and blue arranged on table with same line drawing of hands and shapes overlapping on front of shirt.',
+        },
+      ],
+      sections: [
+        {
+          id: 'clothing',
+          name: 'Clothing',
+          items: [
+            { name: 'Tops', href: '#' },
+            { name: 'Pants', href: '#' },
+            { name: 'Sweaters', href: '#' },
+            { name: 'T-Shirts', href: '#' },
+            { name: 'Jackets', href: '#' },
+            { name: 'Activewear', href: '#' },
+            { name: 'Browse All', href: '#' },
+          ],
+        },
+        {
+          id: 'accessories',
+          name: 'Accessories',
+          items: [
+            { name: 'Watches', href: '#' },
+            { name: 'Wallets', href: '#' },
+            { name: 'Bags', href: '#' },
+            { name: 'Sunglasses', href: '#' },
+            { name: 'Hats', href: '#' },
+            { name: 'Belts', href: '#' },
+          ],
+        },
+        {
+          id: 'brands',
+          name: 'Brands',
+          items: [
+            { name: 'Re-Arranged', href: '#' },
+            { name: 'Counterfeit', href: '#' },
+            { name: 'Full Nelson', href: '#' },
+            { name: 'My Way', href: '#' },
+          ],
+        },
+      ],
+    },
+  ],
+  pages: [
+    { name: 'Company', href: '#' },
+    { name: 'Stores', href: '#' },
+  ],
+};
 
+export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header }) {
+  const [open, setOpen] = useState(false);
+
+  // Try to use collections from header, fallback to empty array
   const collections = header?.collections?.nodes || [];
 
-  const navigation = {
+  // Build navigation from collections or use static navigation
+  const dynamicNavigation = collections.length > 0 ? {
     categories: [
       {
         id: 'catalog',
@@ -39,8 +159,8 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
         featured: [],
         sections: [
           {
-            id: 'all-categories',
-            name: 'All Categories',
+            id: 'collections',
+            name: 'All Collections',
             items: collections.map(c => ({ name: c.title, href: `/collections/${c.handle}` })),
           }
         ],
@@ -49,13 +169,13 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
     pages: menu?.items?.map(item => ({
       name: item.title,
       href: item.url
-    })) || []
-  };
+    })) || navigation.pages
+  } : navigation;
 
   return (
     <div className="bg-white">
       {/* Mobile menu */}
-      <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="relative z-40 lg:hidden">
+      <Dialog open={open} onClose={setOpen} className="relative z-40 lg:hidden">
         <DialogBackdrop
           transition
           className="fixed inset-0 bg-black/25 transition-opacity duration-300 ease-linear data-closed:opacity-0"
@@ -68,7 +188,7 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
             <div className="flex px-4 pt-5 pb-2">
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setOpen(false)}
                 className="relative -m-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400"
               >
                 <span className="absolute -inset-0.5" />
@@ -81,7 +201,7 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
             <TabGroup className="mt-2">
               <div className="border-b border-gray-200">
                 <TabList className="-mb-px flex space-x-8 px-4">
-                  {navigation.categories.map((category) => (
+                  {dynamicNavigation.categories.map((category) => (
                     <Tab
                       key={category.name}
                       className="flex-1 border-b-2 border-transparent px-1 py-4 text-base font-medium whitespace-nowrap text-gray-900 data-selected:border-indigo-600 data-selected:text-indigo-600"
@@ -91,9 +211,27 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
                   ))}
                 </TabList>
               </div>
-              <TabPanels as="div">
+              <TabPanels as={Fragment}>
                 {navigation.categories.map((category) => (
                   <TabPanel key={category.name} className="space-y-10 px-4 pt-10 pb-8">
+                    <div className="grid grid-cols-2 gap-x-4">
+                      {category.featured.map((item) => (
+                        <div key={item.name} className="group relative text-sm">
+                          <img
+                            alt={item.imageAlt}
+                            src={item.imageSrc}
+                            className="aspect-square w-full rounded-lg bg-gray-100 object-cover group-hover:opacity-75"
+                          />
+                          <NavLink to={item.href} className="mt-6 block font-medium text-gray-900">
+                            <span aria-hidden="true" className="absolute inset-0 z-10" />
+                            {item.name}
+                          </NavLink>
+                          <p aria-hidden="true" className="mt-1">
+                            Shop now
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                     {category.sections.map((section) => (
                       <div key={section.name}>
                         <p id={`${category.id}-${section.id}-heading-mobile`} className="font-medium text-gray-900">
@@ -106,7 +244,7 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
                         >
                           {section.items.map((item) => (
                             <li key={item.name} className="flow-root">
-                              <NavLink to={item.href} onClick={() => setMobileMenuOpen(false)} className="-m-2 block p-2 text-gray-500">
+                              <NavLink to={item.href} className="-m-2 block p-2 text-gray-500">
                                 {item.name}
                               </NavLink>
                             </li>
@@ -122,7 +260,7 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
               {navigation.pages.map((page) => (
                 <div key={page.name} className="flow-root">
-                  <NavLink to={page.href} onClick={() => setMobileMenuOpen(false)} className="-m-2 block p-2 font-medium text-gray-900">
+                  <NavLink to={page.href} className="-m-2 block p-2 font-medium text-gray-900">
                     {page.name}
                   </NavLink>
                 </div>
@@ -131,22 +269,40 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
 
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
               <div className="flow-root">
-                <NavLink to="/account" onClick={() => setMobileMenuOpen(false)} className="-m-2 block p-2 font-medium text-gray-900">
+                <NavLink to="/account" className="-m-2 block p-2 font-medium text-gray-900">
                   Sign in
                 </NavLink>
               </div>
+              <div className="flow-root">
+                <NavLink to="/account" className="-m-2 block p-2 font-medium text-gray-900">
+                  Create account
+                </NavLink>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 px-4 py-6">
+              <NavLink to="#" className="-m-2 flex items-center p-2">
+                <img
+                  alt=""
+                  src="https://tailwindcss.com/plus-assets/img/flags/flag-canada.svg"
+                  className="block h-auto w-5 shrink-0"
+                />
+                <span className="ml-3 block text-base font-medium text-gray-900">CAD</span>
+                <span className="sr-only">, change currency</span>
+              </NavLink>
             </div>
           </DialogPanel>
         </div>
       </Dialog>
 
-      <header className="relative bg-white">
-        <nav aria-label="Top" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="border-b border-gray-200">
+      <header className="relative overflow-hidden">
+        {/* Top navigation */}
+        <nav aria-label="Top" className="relative z-20 bg-white/90 backdrop-blur-xl backdrop-filter">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center">
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(true)}
+                onClick={() => setOpen(true)}
                 className="relative rounded-md bg-white p-2 text-gray-400 lg:hidden"
               >
                 <span className="absolute -inset-0.5" />
@@ -157,18 +313,12 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
               {/* Logo */}
               <div className="ml-4 flex lg:ml-0">
                 <NavLink to="/">
-                  <span className="sr-only">{shop?.name}</span>
-                  {shop?.brand?.logo?.image?.url ? (
-                    <img
-                      alt={shop.name}
-                      src={shop.brand.logo.image.url}
-                      className="h-8 w-auto"
-                    />
-                  ) : (
-                    <span className="text-xl font-bold tracking-tight text-gray-900">
-                      {shop?.name}
-                    </span>
-                  )}
+                  <span className="sr-only">Your Company</span>
+                  <img
+                    alt=""
+                    src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
+                    className="h-8 w-auto"
+                  />
                 </NavLink>
               </div>
 
@@ -186,18 +336,34 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
                           />
                         </PopoverButton>
                       </div>
-
                       <PopoverPanel
                         transition
-                        className="absolute inset-x-0 top-full z-20 w-full bg-white text-sm text-gray-500 transition data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
+                        className="group/popover-panel absolute inset-x-0 top-full z-20 w-full bg-white text-sm text-gray-500 transition data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
                       >
-                        {/* Presentational element used to render the bottom shadow */}
+                        {/* Presentational element used to render the bottom shadow, if we put the shadow on the actual panel it pokes out the top, so we use this shorter element to hide the top of the shadow */}
                         <div aria-hidden="true" className="absolute inset-0 top-1/2 bg-white shadow-sm" />
-
                         <div className="relative bg-white">
-                          <div className="mx-auto max-w-7xl px-8">
-                            <div className="grid grid-cols-1 gap-y-10 py-16">
-                              <div className="grid grid-cols-3 gap-x-8 gap-y-10 text-sm">
+                          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-10 py-16">
+                              <div className="col-start-2 grid grid-cols-2 gap-x-8">
+                                {category.featured.map((item) => (
+                                  <div key={item.name} className="group relative text-base sm:text-sm">
+                                    <img
+                                      alt={item.imageAlt}
+                                      src={item.imageSrc}
+                                      className="aspect-square w-full rounded-lg bg-gray-100 object-cover group-hover:opacity-75"
+                                    />
+                                    <NavLink to={item.href} className="mt-6 block font-medium text-gray-900">
+                                      <span aria-hidden="true" className="absolute inset-0 z-10" />
+                                      {item.name}
+                                    </NavLink>
+                                    <p aria-hidden="true" className="mt-1">
+                                      Shop now
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="row-start-1 grid grid-cols-3 gap-x-8 gap-y-10 text-sm">
                                 {category.sections.map((section) => (
                                   <div key={section.name}>
                                     <p id={`${section.name}-heading`} className="font-medium text-gray-900">
@@ -222,10 +388,13 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
                             </div>
                           </div>
                         </div>
+                        {/* Presentational element to emulate a border that sits on top of the popover */}
+                        <div aria-hidden="true" className="absolute inset-0 top-0 z-10 mx-auto h-px max-w-7xl px-8">
+                          <div className="h-px w-full bg-transparent transition-colors duration-200 ease-out group-data-open/popover-panel:bg-gray-200" />
+                        </div>
                       </PopoverPanel>
                     </Popover>
                   ))}
-
                   {navigation.pages.map((page) => (
                     <NavLink
                       key={page.name}
@@ -243,15 +412,26 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
                   <NavLink to="/account" className="text-sm font-medium text-gray-700 hover:text-gray-800">
                     Sign in
                   </NavLink>
+                  <span aria-hidden="true" className="h-6 w-px bg-gray-200" />
+                  <NavLink to="/account" className="text-sm font-medium text-gray-700 hover:text-gray-800">
+                    Create account
+                  </NavLink>
+                </div>
+
+                <div className="hidden lg:ml-8 lg:flex">
+                  <NavLink to="#" className="flex items-center text-gray-700 hover:text-gray-800">
+                    <img
+                      alt=""
+                      src="https://tailwindcss.com/plus-assets/img/flags/flag-canada.svg"
+                      className="block h-auto w-5 shrink-0"
+                    />
+                    <span className="ml-3 block text-sm font-medium">CAD</span>
+                    <span className="sr-only">, change currency</span>
+                  </NavLink>
                 </div>
 
                 {/* Search */}
-                <div className="flex lg:ml-6">
-                  <button onClick={() => open('search')} className="p-2 text-gray-400 hover:text-gray-500">
-                    <span className="sr-only">Search</span>
-                    <MagnifyingGlassIcon aria-hidden="true" className="size-6" />
-                  </button>
-                </div>
+                <SearchButton />
 
                 {/* Cart */}
                 <div className="ml-4 flow-root lg:ml-6">
@@ -266,11 +446,17 @@ export function Header({ cart, isLoggedIn, menu, shop, publicStoreDomain, header
   );
 }
 
-// Keep the existing HeaderMenu for specialized logic if we need to revert or reuse logic, 
-// although this new Header implements its own menu logic.
-export function HeaderMenu({ menu, primaryDomainUrl, publicStoreDomain }) {
-  // Not used in this new implementation but kept to avoid breaking imports elsewhere if any
-  return null;
+function SearchButton() {
+  const { open } = useAside();
+
+  return (
+    <div className="flex lg:ml-6">
+      <button onClick={() => open('search')} className="p-2 text-gray-400 hover:text-gray-500">
+        <span className="sr-only">Search</span>
+        <MagnifyingGlassIcon aria-hidden="true" className="size-6" />
+      </button>
+    </div>
+  );
 }
 
 function CartBadge({ count }) {
@@ -295,9 +481,7 @@ function CartBadge({ count }) {
         aria-hidden="true"
         className="size-6 shrink-0 text-gray-400 group-hover:text-gray-500"
       />
-      <span className="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800">
-        {count || 0}
-      </span>
+      <span className="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800">{count || 0}</span>
       <span className="sr-only">items in cart, view bag</span>
     </button>
   );
@@ -315,4 +499,10 @@ function CartToggle({ cart }) {
       </Await>
     </Suspense>
   );
+}
+
+// Keep the existing HeaderMenu for specialized logic if we need to revert or reuse logic
+export function HeaderMenu({ menu, primaryDomainUrl, publicStoreDomain }) {
+  // Not used in this new implementation but kept to avoid breaking imports elsewhere if any
+  return null;
 }
