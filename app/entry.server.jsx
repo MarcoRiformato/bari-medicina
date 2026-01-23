@@ -1,7 +1,7 @@
-import {ServerRouter} from 'react-router';
-import {isbot} from 'isbot';
-import {renderToReadableStream} from 'react-dom/server';
-import {createContentSecurityPolicy} from '@shopify/hydrogen';
+import { ServerRouter } from 'react-router';
+import { isbot } from 'isbot';
+import { renderToReadableStream } from 'react-dom/server';
+import { createContentSecurityPolicy } from '@shopify/hydrogen';
 
 /**
  * @param {Request} request
@@ -17,11 +17,38 @@ export default async function handleRequest(
   reactRouterContext,
   context,
 ) {
-  const {nonce, header, NonceProvider} = createContentSecurityPolicy({
+  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
     shop: {
       checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
       storeDomain: context.env.PUBLIC_STORE_DOMAIN,
     },
+    // Allow Google Fonts and placeholder images
+    styleSrc: [
+      "'self'",
+      "'unsafe-inline'",
+      'https://cdn.shopify.com',
+      'https://fonts.googleapis.com',
+    ],
+    fontSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://fonts.gstatic.com',
+    ],
+    imgSrc: [
+      "'self'",
+      'data:',
+      'https://cdn.shopify.com',
+      'https://placehold.co',
+      'https://images.unsplash.com',
+      'https://picsum.photos',
+      'https://fastly.picsum.photos',
+    ],
+    connectSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://monorail-edge.shopifysvc.com',
+      'https://images.unsplash.com',
+    ],
   });
 
   const body = await renderToReadableStream(

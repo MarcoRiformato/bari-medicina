@@ -22,35 +22,7 @@ p {
   padding: 0;
 }
 
-h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.4;
-  margin-bottom: 2rem;
-  margin-top: 2rem;
-}
-
-h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  line-height: 1.4;
-  margin-bottom: 1rem;
-}
-
-h4 {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-h5 {
-  margin-bottom: 1rem;
-  margin-top: 0.5rem;
-}
-
-p {
-  font-size: 1rem;
-  line-height: 1.4;
-}
+/* Headings and paragraph styles removed - let Tailwind handle typography */
 
 a {
   color: #000;
@@ -78,16 +50,7 @@ body {
   min-height: 100vh;
 }
 
-body > main {
-  margin: 0 1rem 1rem 1rem;
-}
-
-section {
-  padding: 1rem 0;
-  @media (min-width: 768px) {
-    padding: 2rem 0;
-  }
-}
+/* Main and section padding removed - let page components handle their own spacing */
 
 fieldset {
   display: flex;

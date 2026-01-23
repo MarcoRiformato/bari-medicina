@@ -1,5 +1,5 @@
 import { Await, useLoaderData, Link } from 'react-router';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Image, Money } from '@shopify/hydrogen';
 
 /**
@@ -61,6 +61,39 @@ function loadDeferredData({ context }) {
 export default function Homepage() {
   /** @type {LoaderReturnData} */
   const data = useLoaderData();
+
+  useEffect(() => {
+    const seenSrcs = new Set();
+    console.group('[ImageDebugger] scan started');
+    const imgs = document.querySelectorAll('img');
+
+    console.log(`[ImageDebugger] Found ${imgs.length} images on page.`);
+
+    imgs.forEach((img, i) => {
+      const src = img.getAttribute('src'); // Get raw attribute
+      const isComplete = img.complete;
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+
+      const status = isComplete ? (w > 0 ? 'LOADED' : 'BROKEN (0px)') : 'LOADING';
+      const isDuplicate = seenSrcs.has(src);
+      seenSrcs.add(src);
+
+      const logMethod = isDuplicate ? console.warn : console.log;
+      logMethod(`[IMG #${i}] Status: ${status} | Size: ${w}x${h} | Duplicate: ${isDuplicate} | Src: ${src}`);
+
+      if (isDuplicate) {
+        console.warn(`[ImageDebugger] DUPLICATE DETECTED: ${src}`);
+      }
+
+      if (!isComplete && src) {
+        img.addEventListener('load', () => console.log(`[IMG #${i} EVENT] Loaded late: ${src}`));
+        img.addEventListener('error', () => console.error(`[IMG #${i} EVENT] FAILED: ${src}`));
+      }
+    });
+    console.groupEnd();
+  }, []);
+
   return (
     <>
       {/* Hero section */}
@@ -83,61 +116,44 @@ export default function Homepage() {
 
 function HeroSection() {
   return (
-    <div className="pt-16 pb-80 sm:pt-24 sm:pb-40 lg:pt-40 lg:pb-48">
+    <div className="pt-16 pb-[700px] sm:pt-24 sm:pb-40 lg:pt-40 lg:pb-48">
       <div className="relative mx-auto max-w-7xl px-4 sm:static sm:px-6 lg:px-8">
-        <div className="sm:max-w-lg">
+        <div className="sm:max-w-lg relative z-10">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            Summer styles are finally here
+            La scienza al servizio del tuo benessere
           </h1>
           <p className="mt-4 text-xl text-gray-500">
-            This year, our new summer collection will shelter you from the harsh elements of a world that doesn't
-            care if you live or die.
+            Quest'anno, la nostra nuova collezione di integratori è formulata per supportare il tuo stile di vita attivo.
+            Qualità farmaceutica, ingredienti puri e risultati tangibili.
           </p>
         </div>
         <div>
-          <div className="mt-10">
+          <div className="mt-10 relative">
             {/* Decorative image grid */}
             <div
               aria-hidden="true"
               className="pointer-events-none lg:absolute lg:inset-y-0 lg:mx-auto lg:w-full lg:max-w-7xl"
             >
-              <div className="absolute transform sm:top-0 sm:left-1/2 sm:translate-x-8 lg:top-1/2 lg:left-1/2 lg:translate-x-8 lg:-translate-y-1/2">
+              <div
+                className="absolute transform sm:top-0 sm:left-1/2 sm:translate-x-8 lg:top-1/2 lg:left-1/2 lg:translate-x-8 lg:-translate-y-1/2"
+                style={{
+                  maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)'
+                }}
+              >
                 <div className="flex items-center space-x-6 lg:space-x-8">
                   <div className="grid shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
                     <div className="h-64 w-44 overflow-hidden rounded-lg sm:opacity-0 lg:opacity-100">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/hero1/176/256"
+                        alt="Vitamine e integrazione"
+                        src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
                         className="size-full object-cover"
                       />
                     </div>
                     <div className="h-64 w-44 overflow-hidden rounded-lg">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/hero2/176/256"
-                        className="size-full object-cover"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
-                    <div className="h-64 w-44 overflow-hidden rounded-lg">
-                      <img
-                        alt=""
-                        src="https://picsum.photos/seed/hero3/176/256"
-                        className="size-full object-cover"
-                      />
-                    </div>
-                    <div className="h-64 w-44 overflow-hidden rounded-lg">
-                      <img
-                        alt=""
-                        src="https://picsum.photos/seed/hero4/176/256"
-                        className="size-full object-cover"
-                      />
-                    </div>
-                    <div className="h-64 w-44 overflow-hidden rounded-lg">
-                      <img
-                        alt=""
-                        src="https://picsum.photos/seed/hero5/176/256"
+                        alt="Benessere quotidiano"
+                        src="https://images.unsplash.com/photo-1507413245164-6160d8298b31?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
                         className="size-full object-cover"
                       />
                     </div>
@@ -145,15 +161,22 @@ function HeroSection() {
                   <div className="grid shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
                     <div className="h-64 w-44 overflow-hidden rounded-lg">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/hero6/176/256"
+                        alt="Ricerca e sviluppo"
+                        src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
                         className="size-full object-cover"
                       />
                     </div>
                     <div className="h-64 w-44 overflow-hidden rounded-lg">
                       <img
                         alt=""
-                        src="https://picsum.photos/seed/hero7/176/256"
+                        src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                        className="size-full object-cover"
+                      />
+                    </div>
+                    <div className="h-64 w-44 overflow-hidden rounded-lg">
+                      <img
+                        alt="Analisi scientifica"
+                        src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
                         className="size-full object-cover"
                       />
                     </div>
@@ -164,9 +187,9 @@ function HeroSection() {
 
             <Link
               to="/collections"
-              className="inline-block rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-center font-medium text-white hover:bg-indigo-700"
+              className="relative z-50 inline-block rounded-md border border-transparent bg-indigo-600 px-6 py-2 sm:px-8 sm:py-3 text-sm sm:text-base text-center font-bold text-white shadow-lg hover:bg-indigo-700"
             >
-              Shop Collection
+              Scopri la Collezione
             </Link>
           </div>
         </div>
@@ -185,30 +208,30 @@ function CategorySection({ collections }) {
   const fallbackCategories = [
     {
       id: '1',
-      title: 'New Arrivals',
-      handle: 'new-arrivals',
+      title: 'Nuovi Arrivi',
+      handle: 'nuovi-arrivi',
       image: {
-        url: 'https://picsum.photos/seed/cat1/800/800',
-        altText: 'New arrivals collection',
+        url: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        altText: 'Nuovi arrivi integrazione',
       },
       featured: true,
     },
     {
       id: '2',
-      title: 'Accessories',
-      handle: 'accessories',
+      title: 'Benessere',
+      handle: 'benessere',
       image: {
-        url: 'https://picsum.photos/seed/cat2/800/600',
-        altText: 'Accessories collection',
+        url: 'https://images.unsplash.com/photo-1549476464-37392f717541?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        altText: 'Benessere e Yoga',
       },
     },
     {
       id: '3',
-      title: 'Workspace',
-      handle: 'workspace',
+      title: 'Energia',
+      handle: 'energia',
       image: {
-        url: 'https://picsum.photos/seed/cat3/800/600',
-        altText: 'Workspace collection',
+        url: 'https://images.unsplash.com/photo-1552668693-d0738e00eca8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        altText: 'Energia e Sport',
       },
     },
   ];
@@ -219,14 +242,14 @@ function CategorySection({ collections }) {
   const otherCollections = displayCollections.slice(1);
 
   return (
-    <section aria-labelledby="category-heading" className="bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <section aria-labelledby="category-heading" className="bg-gray-50 relative z-20">
+      <div className="mx-auto max-w-7xl px-4 pt-24 pb-24 sm:px-6 sm:py-32 lg:px-8 lg:pt-24">
         <div className="sm:flex sm:items-baseline sm:justify-between">
           <h2 id="category-heading" className="text-2xl font-bold tracking-tight text-gray-900">
-            Shop by Category
+            Acquista per Categoria
           </h2>
           <Link to="/collections" className="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block">
-            Browse all categories
+            Vedi tutte le categorie
             <span aria-hidden="true"> &rarr;</span>
           </Link>
         </div>
@@ -246,14 +269,14 @@ function CategorySection({ collections }) {
             />
             <div className="absolute inset-0 flex items-end p-6">
               <div>
-                <h3 className="font-semibold text-white">
+                <h3 className="font-bold text-white drop-shadow-lg">
                   <Link to={`/collections/${featuredCollection.handle}`}>
                     <span className="absolute inset-0" />
                     {featuredCollection.title}
                   </Link>
                 </h3>
-                <p aria-hidden="true" className="mt-1 text-sm text-white">
-                  Shop now
+                <p aria-hidden="true" className="mt-1 text-sm font-semibold text-white drop-shadow-lg">
+                  Acquista Ora
                 </p>
               </div>
             </div>
@@ -273,14 +296,14 @@ function CategorySection({ collections }) {
               />
               <div className="absolute inset-0 flex items-end p-6">
                 <div>
-                  <h3 className="font-semibold text-white">
+                  <h3 className="font-bold text-white drop-shadow-lg">
                     <Link to={`/collections/${collection.handle}`}>
                       <span className="absolute inset-0" />
                       {collection.title}
                     </Link>
                   </h3>
-                  <p aria-hidden="true" className="mt-1 text-sm text-white">
-                    Shop now
+                  <p aria-hidden="true" className="mt-1 text-sm font-semibold text-white drop-shadow-lg">
+                    Acquista Ora
                   </p>
                 </div>
               </div>
@@ -306,25 +329,25 @@ function FeaturedSection() {
         <div className="absolute inset-0 overflow-hidden">
           <img
             alt=""
-            src="https://picsum.photos/seed/featured/1920/800"
+            src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
             className="size-full object-cover"
           />
         </div>
         <div aria-hidden="true" className="absolute inset-0 bg-gray-900/50" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
           <h2 id="cause-heading" className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Long-term thinking
+            Il Nostro Impegno
           </h2>
           <p className="mt-3 text-xl text-white">
-            We're committed to responsible, sustainable, and ethical manufacturing. Our small-scale approach allows
-            us to focus on quality and reduce our impact. We're doing our best to delay the inevitable heat-death of
-            the universe.
+            Ci impegniamo per una produzione responsabile, etica e sostenibile. Il nostro approccio farmaceutico
+            ci permette di garantire la massima purezza e biodisponibilità, riducendo l'impatto ambientale.
+            La tua salute è la nostra priorità.
           </p>
           <Link
             to="#"
             className="mt-8 block w-full rounded-md border border-transparent bg-white px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-100 sm:w-auto"
           >
-            Read our story
+            Scopri la nostra storia
           </Link>
         </div>
       </div>
@@ -342,47 +365,47 @@ function FavoritesSection({ products }) {
   const fallbackProducts = [
     {
       id: '1',
-      title: 'Black Basic Tee',
-      handle: 'black-basic-tee',
+      title: 'Proteine Isolate Puro',
+      handle: 'proteine-isolate',
       priceRange: {
         minVariantPrice: {
-          amount: '32.00',
-          currencyCode: 'USD',
+          amount: '45.00',
+          currencyCode: 'EUR',
         },
       },
       featuredImage: {
-        url: 'https://picsum.photos/seed/prod1/600/900',
-        altText: 'Black Basic Tee',
+        url: 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+        altText: 'Proteine',
       },
     },
     {
       id: '2',
-      title: 'Off-White Basic Tee',
-      handle: 'off-white-basic-tee',
+      title: 'Multivitaminico Daily',
+      handle: 'multivitaminico',
       priceRange: {
         minVariantPrice: {
-          amount: '32.00',
-          currencyCode: 'USD',
+          amount: '22.00',
+          currencyCode: 'EUR',
         },
       },
       featuredImage: {
-        url: 'https://picsum.photos/seed/prod2/600/900',
-        altText: 'Off-White Basic Tee',
+        url: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+        altText: 'Multivitaminico',
       },
     },
     {
       id: '3',
-      title: 'Mountains Artwork Tee',
-      handle: 'mountains-artwork-tee',
+      title: 'Omega-3 Artico',
+      handle: 'omega-3',
       priceRange: {
         minVariantPrice: {
-          amount: '36.00',
-          currencyCode: 'USD',
+          amount: '28.00',
+          currencyCode: 'EUR',
         },
       },
       featuredImage: {
-        url: 'https://picsum.photos/seed/prod3/600/900',
-        altText: 'Mountains Artwork Tee',
+        url: 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+        altText: 'Omega-3',
       },
     },
   ];
@@ -392,10 +415,10 @@ function FavoritesSection({ products }) {
       <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="sm:flex sm:items-baseline sm:justify-between">
           <h2 id="favorites-heading" className="text-2xl font-bold tracking-tight text-gray-900">
-            Our Favorites
+            I Nostri Preferiti
           </h2>
           <Link to="/collections" className="hidden text-sm font-semibold text-indigo-600 hover:text-indigo-500 sm:block">
-            Browse all favorites
+            Vedi tutti i preferiti
             <span aria-hidden="true"> &rarr;</span>
           </Link>
         </div>
@@ -434,7 +457,7 @@ function FavoritesGrid({ products }) {
             <img
               alt={product.featuredImage.altText || product.title}
               src={product.featuredImage.url}
-              className="h-96 w-full rounded-lg object-cover group-hover:opacity-75 sm:aspect-2/3 sm:h-auto"
+              className="h-96 w-full rounded-lg object-cover group-hover:opacity-75"
             />
           ) : null}
           <h3 className="mt-4 text-base font-semibold text-gray-900">
@@ -443,9 +466,9 @@ function FavoritesGrid({ products }) {
               {product.title}
             </Link>
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <div className="mt-1 text-sm text-gray-500">
             <Money data={product.priceRange.minVariantPrice} />
-          </p>
+          </div>
         </div>
       ))}
     </div>
@@ -460,34 +483,34 @@ function CTASection() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="relative pt-48 pb-16 sm:pb-24">
               <div>
-                <h2 id="sale-heading" className="text-4xl font-bold tracking-tight text-white md:text-5xl">
-                  Final Stock.
+                <h2 id="sale-heading" className="text-4xl font-bold tracking-tight text-white md:text-5xl drop-shadow-lg">
+                  Offerte Esclusive.
                   <br />
-                  Up to 50% off.
+                  Fino al 50% di sconto.
                 </h2>
                 <div className="mt-6 text-base">
-                  <Link to="#" className="font-semibold text-white">
-                    Shop the sale
+                  <Link to="#" className="font-bold text-white drop-shadow-lg hover:text-gray-100">
+                    Approfitta degli sconti
                     <span aria-hidden="true"> &rarr;</span>
                   </Link>
                 </div>
               </div>
 
-              <div className="absolute -top-32 left-1/2 -translate-x-1/2 transform sm:top-6 sm:translate-x-0">
-                <div className="ml-24 flex min-w-max space-x-6 sm:ml-3 lg:space-x-8">
+              <div className="absolute -top-32 left-1/2 min-w-max -translate-x-1/2 transform sm:top-6 sm:translate-x-0">
+                <div className="ml-24 flex space-x-6 sm:ml-3 lg:space-x-8">
                   <div className="flex space-x-6 sm:flex-col sm:space-y-6 sm:space-x-0 lg:space-y-8">
                     <div className="shrink-0">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/cta1/288/288"
+                        alt="Integratori proteici"
+                        src="https://images.unsplash.com/photo-1593095948071-474c5cc2989d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                         className="size-64 rounded-lg object-cover md:size-72"
                       />
                     </div>
 
                     <div className="mt-6 shrink-0 sm:mt-0">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/cta2/288/288"
+                        alt="Vitamine"
+                        src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                         className="size-64 rounded-lg object-cover md:size-72"
                       />
                     </div>
@@ -495,16 +518,16 @@ function CTASection() {
                   <div className="flex space-x-6 sm:-mt-20 sm:flex-col sm:space-y-6 sm:space-x-0 lg:space-y-8">
                     <div className="shrink-0">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/cta3/288/288"
+                        alt="Benessere"
+                        src="https://images.unsplash.com/photo-1507413245164-6160d8298b31?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                         className="size-64 rounded-lg object-cover md:size-72"
                       />
                     </div>
 
                     <div className="mt-6 shrink-0 sm:mt-0">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/cta4/288/288"
+                        alt="Ricerca scientifica"
+                        src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                         className="size-64 rounded-lg object-cover md:size-72"
                       />
                     </div>
@@ -512,16 +535,16 @@ function CTASection() {
                   <div className="flex space-x-6 sm:flex-col sm:space-y-6 sm:space-x-0 lg:space-y-8">
                     <div className="shrink-0">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/cta5/288/288"
+                        alt="Fitness"
+                        src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                         className="size-64 rounded-lg object-cover md:size-72"
                       />
                     </div>
 
                     <div className="mt-6 shrink-0 sm:mt-0">
                       <img
-                        alt=""
-                        src="https://picsum.photos/seed/cta6/288/288"
+                        alt="Omega-3"
+                        src="https://images.unsplash.com/photo-1628771065518-0d82f1938462?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
                         className="size-64 rounded-lg object-cover md:size-72"
                       />
                     </div>

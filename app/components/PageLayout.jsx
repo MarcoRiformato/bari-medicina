@@ -37,11 +37,17 @@ export function PageLayout({
         />
       )}
       <main>{children}</main>
-      <Footer
-        menu={footer?.menu}
-        shop={header?.shop}
-        publicStoreDomain={publicStoreDomain}
-      />
+      <Suspense fallback={null}>
+        <Await resolve={footer}>
+          {(footerData) => (
+            <Footer
+              footer={footerData}
+              shop={header?.shop}
+              publicStoreDomain={publicStoreDomain}
+            />
+          )}
+        </Await>
+      </Suspense>
     </Aside.Provider>
   );
 }
