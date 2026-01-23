@@ -1,6 +1,6 @@
-import {useLoaderData, Link} from 'react-router';
-import {getPaginationVariables, Image} from '@shopify/hydrogen';
-import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import { useLoaderData, Link } from 'react-router';
+import { getPaginationVariables, Image } from '@shopify/hydrogen';
+import { PaginatedResourceSection } from '~/components/PaginatedResourceSection';
 
 /**
  * @param {Route.LoaderArgs} args
@@ -12,7 +12,7 @@ export async function loader(args) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return { ...deferredData, ...criticalData };
 }
 
 /**
@@ -20,19 +20,19 @@ export async function loader(args) {
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  * @param {Route.LoaderArgs}
  */
-async function loadCriticalData({context, request}) {
+async function loadCriticalData({ context, request }) {
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 4,
   });
 
-  const [{collections}] = await Promise.all([
+  const [{ collections }] = await Promise.all([
     context.storefront.query(COLLECTIONS_QUERY, {
       variables: paginationVariables,
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
-  return {collections};
+  return { collections };
 }
 
 /**
@@ -41,29 +41,33 @@ async function loadCriticalData({context, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData({ context }) {
   return {};
 }
 
 export default function Collections() {
   /** @type {LoaderReturnData} */
-  const {collections} = useLoaderData();
+  const { collections } = useLoaderData();
 
   return (
-    <div className="collections">
-      <h1>Collections</h1>
-      <PaginatedResourceSection
-        connection={collections}
-        resourcesClassName="collections-grid"
-      >
-        {({node: collection, index}) => (
-          <CollectionItem
-            key={collection.id}
-            collection={collection}
-            index={index}
-          />
-        )}
-      </PaginatedResourceSection>
+    <div className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Collections</h1>
+        <div className="mt-8">
+          <PaginatedResourceSection
+            connection={collections}
+            resourcesClassName="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8"
+          >
+            {({ node: collection, index }) => (
+              <CollectionItem
+                key={collection.id}
+                collection={collection}
+                index={index}
+              />
+            )}
+          </PaginatedResourceSection>
+        </div>
+      </div>
     </div>
   );
 }
@@ -74,10 +78,10 @@ export default function Collections() {
  *   index: number;
  * }}
  */
-function CollectionItem({collection, index}) {
+function CollectionItem({ collection, index }) {
   return (
     <Link
-      className="collection-item"
+      className="collection-item group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
       key={collection.id}
       to={`/collections/${collection.handle}`}
       prefetch="intent"
@@ -89,9 +93,13 @@ function CollectionItem({collection, index}) {
           data={collection.image}
           loading={index < 3 ? 'eager' : undefined}
           sizes="(min-width: 45em) 400px, 100vw"
+          className="group-hover:scale-105 transition-transform duration-300"
         />
       )}
-      <h5>{collection.title}</h5>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-4 backdrop-blur-sm bg-white/10">
+        <h5 className="text-2xl font-bold text-white font-serif drop-shadow-lg">{collection.title}</h5>
+      </div>
     </Link>
   );
 }

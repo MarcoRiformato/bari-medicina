@@ -1,11 +1,11 @@
-import {useLoaderData} from 'react-router';
-import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import { useLoaderData } from 'react-router';
+import { redirectIfHandleIsLocalized } from '~/lib/redirect';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.page.title ?? ''}`}];
+export const meta = ({ data }) => {
+  return [{ title: `Hydrogen | ${data?.page.title ?? ''}` }];
 };
 
 /**
@@ -18,7 +18,7 @@ export async function loader(args) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return { ...deferredData, ...criticalData };
 }
 
 /**
@@ -26,12 +26,12 @@ export async function loader(args) {
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  * @param {Route.LoaderArgs}
  */
-async function loadCriticalData({context, request, params}) {
+async function loadCriticalData({ context, request, params }) {
   if (!params.handle) {
     throw new Error('Missing page handle');
   }
 
-  const [{page}] = await Promise.all([
+  const [{ page }] = await Promise.all([
     context.storefront.query(PAGE_QUERY, {
       variables: {
         handle: params.handle,
@@ -41,10 +41,10 @@ async function loadCriticalData({context, request, params}) {
   ]);
 
   if (!page) {
-    throw new Response('Not Found', {status: 404});
+    throw new Response('Not Found', { status: 404 });
   }
 
-  redirectIfHandleIsLocalized(request, {handle: params.handle, data: page});
+  redirectIfHandleIsLocalized(request, { handle: params.handle, data: page });
 
   return {
     page,
@@ -57,20 +57,25 @@ async function loadCriticalData({context, request, params}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData({ context }) {
   return {};
 }
 
 export default function Page() {
   /** @type {LoaderReturnData} */
-  const {page} = useLoaderData();
+  const { page } = useLoaderData();
 
   return (
-    <div className="page">
-      <header>
-        <h1>{page.title}</h1>
-      </header>
-      <main dangerouslySetInnerHTML={{__html: page.body}} />
+    <div className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <header className="mb-10">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{page.title}</h1>
+        </header>
+        <main
+          className="prose prose-lg mx-auto text-gray-500"
+          dangerouslySetInnerHTML={{ __html: page.body }}
+        />
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Analytics, getShopAnalytics, useNonce } from '@shopify/hydrogen';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import {
   Outlet,
   useRouteError,
@@ -9,6 +10,11 @@ import {
   ScrollRestoration,
   useRouteLoaderData,
 } from 'react-router';
+
+// Lazy load Agentation to avoid SSR issues
+const Agentation = lazy(() =>
+  import('agentation').then((mod) => ({ default: mod.Agentation }))
+);
 import favicon from '~/assets/favicon.svg';
 import { FOOTER_QUERY, HEADER_QUERY } from '~/lib/fragments';
 import resetStyles from '~/styles/reset.css?url';
@@ -158,6 +164,11 @@ function loadDeferredData({ context }) {
  */
 export function Layout({ children }) {
   const nonce = useNonce();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <html lang="en" className="antialiased">
@@ -172,6 +183,11 @@ export function Layout({ children }) {
       </head>
       <body className="font-sans">
         {children}
+        {import.meta.env.DEV && isClient && (
+          <Suspense fallback={null}>
+            <Agentation />
+          </Suspense>
+        )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>

@@ -6,28 +6,18 @@ import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 // Italian fallback footer navigation
 const footerNavigation = {
   shop: [
-    { name: 'Integratori', href: '/collections/integratori' },
+    { name: 'Tutti i Prodotti', href: '/collections' },
     { name: 'Vitamine', href: '/collections/vitamine' },
-    { name: 'Prodotti Naturali', href: '/collections/prodotti-naturali' },
-    { name: 'Benessere', href: '/collections/benessere' },
+    { name: 'Enzimi', href: '/collections/enzimi' },
   ],
   company: [
-    { name: 'Chi Siamo', href: '/pages/chi-siamo' },
-    { name: 'Sostenibilità', href: '/pages/sostenibilita' },
-    { name: 'Carriere', href: '/pages/carriere' },
-    { name: 'Termini e Condizioni', href: '/pages/termini' },
-    { name: 'Privacy', href: '/pages/privacy' },
+    { name: 'Contattaci', href: '/pages/contact' },
   ],
   account: [
-    { name: 'Il Mio Account', href: '/account' },
-    { name: 'Resi e Cambi', href: '/pages/resi' },
-    { name: 'Utilizza Gift Card', href: '/pages/gift-card' },
+    { name: 'Cerca', href: '/search' },
   ],
   connect: [
-    { name: 'Contattaci', href: '/pages/contatti' },
-    { name: 'Facebook', href: '#' },
-    { name: 'Instagram', href: '#' },
-    { name: 'Pinterest', href: '#' },
+    { name: 'Contattaci', href: '/pages/contact' },
   ],
 };
 
