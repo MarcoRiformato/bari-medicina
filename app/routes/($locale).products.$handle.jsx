@@ -1,4 +1,4 @@
-import {useLoaderData} from 'react-router';
+import { useLoaderData } from 'react-router';
 import {
   getSelectedProductOptions,
   Analytics,
@@ -26,16 +26,16 @@ import {
   ArrowPathIcon,
   CheckBadgeIcon,
 } from '@heroicons/react/24/outline';
-import {ProductPrice} from '~/components/ProductPrice';
-import {ProductForm} from '~/components/ProductForm';
-import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import { ProductPrice } from '~/components/ProductPrice';
+import { ProductForm } from '~/components/ProductForm';
+import { redirectIfHandleIsLocalized } from '~/lib/redirect';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
+export const meta = ({ data }) => {
   return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
+    { title: `Hydrogen | ${data?.product.title ?? ''}` },
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,
@@ -53,7 +53,7 @@ export async function loader(args) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return {...deferredData, ...criticalData};
+  return { ...deferredData, ...criticalData };
 }
 
 /**
@@ -61,27 +61,27 @@ export async function loader(args) {
  * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
  * @param {Route.LoaderArgs}
  */
-async function loadCriticalData({context, params, request}) {
-  const {handle} = params;
-  const {storefront} = context;
+async function loadCriticalData({ context, params, request }) {
+  const { handle } = params;
+  const { storefront } = context;
 
   if (!handle) {
     throw new Error('Expected product handle to be defined');
   }
 
-  const [{product}] = await Promise.all([
+  const [{ product }] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
-      variables: {handle, selectedOptions: getSelectedProductOptions(request)},
+      variables: { handle, selectedOptions: getSelectedProductOptions(request) },
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
   if (!product?.id) {
-    throw new Response(null, {status: 404});
+    throw new Response(null, { status: 404 });
   }
 
   // The API handle might be localized, so redirect to the localized handle
-  redirectIfHandleIsLocalized(request, {handle, data: product});
+  redirectIfHandleIsLocalized(request, { handle, data: product });
 
   return {
     product,
@@ -94,7 +94,7 @@ async function loadCriticalData({context, params, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context, params}) {
+function loadDeferredData({ context, params }) {
   // Put any API calls that is not critical to be available on first page render
   // For example: product reviews, product recommendations, social feeds.
 
@@ -103,7 +103,7 @@ function loadDeferredData({context, params}) {
 
 export default function Product() {
   /** @type {LoaderReturnData} */
-  const {product} = useLoaderData();
+  const { product } = useLoaderData();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -121,7 +121,7 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const {title, descriptionHtml} = product;
+  const { title, descriptionHtml } = product;
 
   // Get all product images
   const images = product.images?.nodes || [];
@@ -167,77 +167,57 @@ export default function Product() {
           {/* Product */}
           <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-12">
             {/* Image gallery */}
-            <TabGroup className="flex flex-col-reverse lg:sticky lg:top-8">
-              {/* Image selector */}
-              {displayImages.length > 1 && (
-                <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
-                  <TabList className="grid grid-cols-4 gap-6">
-                    {displayImages.map((image, index) => (
-                      <Tab
-                        key={image.id || index}
-                        className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 focus:ring-3 focus:ring-sky-500/50 focus:ring-offset-4 focus:outline-hidden"
-                      >
-                        <span className="sr-only">{image.altText || `Immagine ${index + 1}`}</span>
-                        <span className="absolute inset-0 overflow-hidden rounded-md">
-                          <Image
-                            alt={image.altText || ''}
-                            data={image}
-                            className="size-full object-cover"
-                            sizes="96px"
+            <div className="flex flex-col lg:sticky lg:top-8">
+              <TabGroup className="flex flex-col-reverse">
+                {/* Image selector */}
+                {displayImages.length > 1 && (
+                  <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
+                    <TabList className="grid grid-cols-4 gap-6">
+                      {displayImages.map((image, index) => (
+                        <Tab
+                          key={image.id || index}
+                          className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 focus:ring-3 focus:ring-sky-500/50 focus:ring-offset-4 focus:outline-hidden"
+                        >
+                          <span className="sr-only">{image.altText || `Immagine ${index + 1}`}</span>
+                          <span className="absolute inset-0 overflow-hidden rounded-md">
+                            <Image
+                              alt={image.altText || ''}
+                              data={image}
+                              className="size-full object-cover"
+                              sizes="96px"
+                            />
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-transparent ring-offset-2 group-data-selected:ring-sky-500"
                           />
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-transparent ring-offset-2 group-data-selected:ring-sky-500"
-                        />
-                      </Tab>
-                    ))}
-                  </TabList>
-                </div>
-              )}
-
-              <TabPanels>
-                {displayImages.map((image, index) => (
-                  <TabPanel key={image.id || index}>
-                    <Image
-                      alt={image.altText || 'Product Image'}
-                      data={image}
-                      className="aspect-square w-full object-cover sm:rounded-lg"
-                      sizes="(min-width: 1024px) 50vw, 100vw"
-                    />
-                  </TabPanel>
-                ))}
-                {displayImages.length === 0 && (
-                  <TabPanel>
-                    <div className="aspect-square w-full bg-gray-200 sm:rounded-lg" />
-                  </TabPanel>
+                        </Tab>
+                      ))}
+                    </TabList>
+                  </div>
                 )}
-              </TabPanels>
-            </TabGroup>
 
-            {/* Product info */}
-            <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
-              {/* Vendor badge */}
-              {product.vendor && (
-                <p className="text-sm font-medium text-sky-600 uppercase tracking-wide">
-                  {product.vendor}
-                </p>
-              )}
+                <TabPanels>
+                  {displayImages.map((image, index) => (
+                    <TabPanel key={image.id || index}>
+                      <Image
+                        alt={image.altText || 'Product Image'}
+                        data={image}
+                        className="aspect-square w-full object-cover sm:rounded-lg"
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                      />
+                    </TabPanel>
+                  ))}
+                  {displayImages.length === 0 && (
+                    <TabPanel>
+                      <div className="aspect-square w-full bg-gray-200 sm:rounded-lg" />
+                    </TabPanel>
+                  )}
+                </TabPanels>
+              </TabGroup>
 
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
-                {title}
-              </h1>
-
-              <div className="mt-4">
-                <h2 className="sr-only">Informazioni prodotto</h2>
-                <ProductPrice
-                  price={selectedVariant?.price}
-                  compareAtPrice={selectedVariant?.compareAtPrice}
-                />
-              </div>
-
-              {/* Trust badges - inline */}
-              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+              {/* Trust badges - inline (Moved from right column) */}
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 sm:justify-start">
                 <div className="flex items-center gap-1.5">
                   <TruckIcon className="size-5 text-green-600" />
                   <span>Spedizione gratuita</span>
@@ -252,27 +232,8 @@ export default function Product() {
                 </div>
               </div>
 
-              {/* Description */}
-              {descriptionHtml && (
-                <div className="mt-6">
-                  <h3 className="sr-only">Descrizione</h3>
-                  <div
-                    dangerouslySetInnerHTML={{__html: descriptionHtml}}
-                    className="prose prose-sm text-gray-600 max-w-none"
-                  />
-                </div>
-              )}
-
-              {/* Product form with variants and add to cart */}
-              <div className="mt-8">
-                <ProductForm
-                  productOptions={productOptions}
-                  selectedVariant={selectedVariant}
-                />
-              </div>
-
-              {/* Trust section with icons */}
-              <div className="mt-8 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-4">
+              {/* Trust section with icons (Moved from right column) */}
+              <div className="mt-6 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 rounded-full bg-sky-100 p-2">
                     <TruckIcon className="size-5 text-sky-600" />
@@ -310,6 +271,47 @@ export default function Product() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Product info */}
+            <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+              {/* Vendor badge */}
+              {product.vendor && (
+                <p className="text-sm font-medium text-sky-600 uppercase tracking-wide">
+                  {product.vendor}
+                </p>
+              )}
+
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+                {title}
+              </h1>
+
+              <div className="mt-4">
+                <h2 className="sr-only">Informazioni prodotto</h2>
+                <ProductPrice
+                  price={selectedVariant?.price}
+                  compareAtPrice={selectedVariant?.compareAtPrice}
+                />
+              </div>
+
+              {/* Description */}
+              {descriptionHtml && (
+                <div className="mt-6">
+                  <h3 className="sr-only">Descrizione</h3>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+                    className="prose prose-sm text-gray-600 max-w-none"
+                  />
+                </div>
+              )}
+
+              {/* Product form with variants and add to cart */}
+              <div className="mt-8">
+                <ProductForm
+                  productOptions={productOptions}
+                  selectedVariant={selectedVariant}
+                />
+              </div>
 
               {/* Collapsible details */}
               <section aria-labelledby="details-heading" className="mt-10">
@@ -340,7 +342,7 @@ export default function Product() {
                       <DisclosurePanel className="pb-6">
                         {detail.type === 'html' && detail.content ? (
                           <div
-                            dangerouslySetInnerHTML={{__html: detail.content}}
+                            dangerouslySetInnerHTML={{ __html: detail.content }}
                             className="prose prose-sm text-gray-700"
                           />
                         ) : detail.type === 'list' && detail.items ? (

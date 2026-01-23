@@ -48,14 +48,14 @@ export function Footer({ footer, shop, publicStoreDomain }) {
         Footer
       </h2>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="py-20 xl:grid xl:grid-cols-3 xl:gap-8">
+        <div className="py-12 xl:grid xl:grid-cols-3 xl:gap-8 lg:py-16">
           {useShopifyMenu ? (
             // Render Shopify menu as a simple list
             <div className="grid grid-cols-2 gap-8 xl:col-span-2 md:grid-cols-4">
               {menu.items.map((item) => (
                 <div key={item.id}>
-                  <h3 className="text-sm font-medium text-gray-900">{item.title}</h3>
-                  <ul role="list" className="mt-6 space-y-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">{item.title}</h3>
+                  <ul role="list" className="mt-4 space-y-4">
                     {item.items?.length > 0 ? (
                       item.items.map((subItem) => (
                         <li key={subItem.id} className="text-sm">
@@ -64,7 +64,7 @@ export function Footer({ footer, shop, publicStoreDomain }) {
                               ? new URL(subItem.url).pathname
                               : subItem.url
                             }
-                            className="text-gray-500 hover:text-gray-600"
+                            className="text-gray-600 transition hover:text-indigo-600"
                           >
                             {subItem.title}
                           </NavLink>
@@ -77,7 +77,7 @@ export function Footer({ footer, shop, publicStoreDomain }) {
                             ? new URL(item.url).pathname
                             : item.url
                           }
-                          className="text-gray-500 hover:text-gray-600"
+                          className="text-gray-600 transition hover:text-indigo-600"
                         >
                           {item.title}
                         </NavLink>
@@ -90,13 +90,13 @@ export function Footer({ footer, shop, publicStoreDomain }) {
           ) : (
             // Render fallback navigation
             <div className="grid grid-cols-2 gap-8 xl:col-span-2">
-              <div className="space-y-16 md:grid md:grid-cols-2 md:gap-8 md:space-y-0">
+              <div className="space-y-12 md:grid md:grid-cols-2 md:gap-8 md:space-y-0">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Shop</h3>
-                  <ul role="list" className="mt-6 space-y-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">Shop</h3>
+                  <ul role="list" className="mt-4 space-y-4">
                     {footerNavigation.shop.map((item) => (
                       <li key={item.name} className="text-sm">
-                        <NavLink to={item.href} className="text-gray-500 hover:text-gray-600">
+                        <NavLink to={item.href} className="text-gray-600 transition hover:text-indigo-600">
                           {item.name}
                         </NavLink>
                       </li>
@@ -104,11 +104,11 @@ export function Footer({ footer, shop, publicStoreDomain }) {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Company</h3>
-                  <ul role="list" className="mt-6 space-y-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">Company</h3>
+                  <ul role="list" className="mt-4 space-y-4">
                     {footerNavigation.company.map((item) => (
                       <li key={item.name} className="text-sm">
-                        <NavLink to={item.href} className="text-gray-500 hover:text-gray-600">
+                        <NavLink to={item.href} className="text-gray-600 transition hover:text-indigo-600">
                           {item.name}
                         </NavLink>
                       </li>
@@ -116,13 +116,13 @@ export function Footer({ footer, shop, publicStoreDomain }) {
                   </ul>
                 </div>
               </div>
-              <div className="space-y-16 md:grid md:grid-cols-2 md:gap-8 md:space-y-0">
+              <div className="space-y-12 md:grid md:grid-cols-2 md:gap-8 md:space-y-0">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Account</h3>
-                  <ul role="list" className="mt-6 space-y-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">Account</h3>
+                  <ul role="list" className="mt-4 space-y-4">
                     {footerNavigation.account.map((item) => (
                       <li key={item.name} className="text-sm">
-                        <NavLink to={item.href} className="text-gray-500 hover:text-gray-600">
+                        <NavLink to={item.href} className="text-gray-600 transition hover:text-indigo-600">
                           {item.name}
                         </NavLink>
                       </li>
@@ -130,11 +130,11 @@ export function Footer({ footer, shop, publicStoreDomain }) {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-900">Connect</h3>
-                  <ul role="list" className="mt-6 space-y-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">Connect</h3>
+                  <ul role="list" className="mt-4 space-y-4">
                     {footerNavigation.connect.map((item) => (
                       <li key={item.name} className="text-sm">
-                        <NavLink to={item.href} className="text-gray-500 hover:text-gray-600">
+                        <NavLink to={item.href} className="text-gray-600 transition hover:text-indigo-600">
                           {item.name}
                         </NavLink>
                       </li>
@@ -144,28 +144,28 @@ export function Footer({ footer, shop, publicStoreDomain }) {
               </div>
             </div>
           )}
-          <div className="mt-16 xl:mt-0">
-            <h3 className="text-sm font-medium text-gray-900">Iscriviti alla Newsletter</h3>
-            <p className="mt-6 text-sm text-gray-500">Le ultime offerte e novità, direttamente nella tua inbox.</p>
-            <form className="mt-2 flex sm:max-w-md" onSubmit={handleNewsletterSubmit}>
+          <div className="mt-12 rounded-2xl bg-gray-50 p-6 xl:mt-0">
+            <h3 className="text-base font-semibold text-gray-900">Iscriviti alla Newsletter</h3>
+            <p className="mt-2 text-sm text-gray-600">Ricevi in anteprima le nostre promozioni.</p>
+            <form className="mt-4 sm:flex sm:max-w-md" onSubmit={handleNewsletterSubmit}>
               <input
                 id="email-address"
                 type="email"
                 required
                 autoComplete="email"
-                placeholder="Inserisci la tua email"
+                placeholder="La tua email"
                 aria-label="Indirizzo email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-md bg-white px-4 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
+                className="block w-full rounded-md border-0 bg-white px-4 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
 
-              <div className="ml-4 shrink-0">
+              <div className="mt-3 sm:mt-0 sm:ml-3 sm:shrink-0">
                 <button
                   type="submit"
-                  className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+                  className="flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >
-                  Iscriviti
+                  Invia
                 </button>
               </div>
             </form>
