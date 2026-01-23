@@ -6,9 +6,27 @@ import {
   getProductOptions,
   getAdjacentAndFirstAvailableVariants,
   useSelectedOptionInUrlParam,
+  Image,
 } from '@shopify/hydrogen';
+import {
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from '@headlessui/react';
+import {
+  MinusIcon,
+  PlusIcon,
+  TruckIcon,
+  ShieldCheckIcon,
+  ArrowPathIcon,
+  CheckBadgeIcon,
+} from '@heroicons/react/24/outline';
 import {ProductPrice} from '~/components/ProductPrice';
-import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
@@ -105,48 +123,247 @@ export default function Product() {
 
   const {title, descriptionHtml} = product;
 
+  // Get all product images
+  const images = product.images?.nodes || [];
+  // If no product images, fallback to variant image
+  const displayImages =
+    images.length > 0
+      ? images
+      : selectedVariant?.image
+        ? [selectedVariant.image]
+        : [];
+
+  // Product details for accordions
+  const productDetails = [
+    {
+      name: 'Caratteristiche',
+      content: descriptionHtml,
+      type: 'html',
+    },
+    {
+      name: 'Spedizione',
+      items: [
+        'Spedizione gratuita per ordini superiori a €50',
+        'Spedizione internazionale disponibile',
+        'Consegna in 2-5 giorni lavorativi',
+      ],
+      type: 'list',
+    },
+    {
+      name: 'Resi',
+      items: [
+        'Reso facile entro 30 giorni',
+        'Etichetta di reso prepagata inclusa',
+        'Rimborso completo o sostituzione',
+      ],
+      type: 'list',
+    },
+  ];
+
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-        <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
-          {/* Image - left column */}
-          <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-lg bg-gray-200">
-            <ProductImage image={selectedVariant?.image} />
-          </div>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:max-w-none">
+          {/* Product */}
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-12">
+            {/* Image gallery */}
+            <TabGroup className="flex flex-col-reverse lg:sticky lg:top-8">
+              {/* Image selector */}
+              {displayImages.length > 1 && (
+                <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
+                  <TabList className="grid grid-cols-4 gap-6">
+                    {displayImages.map((image, index) => (
+                      <Tab
+                        key={image.id || index}
+                        className="group relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 focus:ring-3 focus:ring-sky-500/50 focus:ring-offset-4 focus:outline-hidden"
+                      >
+                        <span className="sr-only">{image.altText || `Immagine ${index + 1}`}</span>
+                        <span className="absolute inset-0 overflow-hidden rounded-md">
+                          <Image
+                            alt={image.altText || ''}
+                            data={image}
+                            className="size-full object-cover"
+                            sizes="96px"
+                          />
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-transparent ring-offset-2 group-data-selected:ring-sky-500"
+                        />
+                      </Tab>
+                    ))}
+                  </TabList>
+                </div>
+              )}
 
-          {/* Product info - right column */}
-          <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              {title}
-            </h1>
+              <TabPanels>
+                {displayImages.map((image, index) => (
+                  <TabPanel key={image.id || index}>
+                    <Image
+                      alt={image.altText || 'Product Image'}
+                      data={image}
+                      className="aspect-square w-full object-cover sm:rounded-lg"
+                      sizes="(min-width: 1024px) 50vw, 100vw"
+                    />
+                  </TabPanel>
+                ))}
+                {displayImages.length === 0 && (
+                  <TabPanel>
+                    <div className="aspect-square w-full bg-gray-200 sm:rounded-lg" />
+                  </TabPanel>
+                )}
+              </TabPanels>
+            </TabGroup>
 
-            <div className="mt-3">
-              <h2 className="sr-only">Product information</h2>
-              <ProductPrice
-                price={selectedVariant?.price}
-                compareAtPrice={selectedVariant?.compareAtPrice}
-              />
-            </div>
+            {/* Product info */}
+            <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
+              {/* Vendor badge */}
+              {product.vendor && (
+                <p className="text-sm font-medium text-sky-600 uppercase tracking-wide">
+                  {product.vendor}
+                </p>
+              )}
 
-            <div className="mt-6">
-              <ProductForm
-                productOptions={productOptions}
-                selectedVariant={selectedVariant}
-              />
-            </div>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+                {title}
+              </h1>
 
-            {descriptionHtml && (
-              <div className="mt-10">
-                <h2 className="text-sm font-medium text-gray-900">Description</h2>
-                <div
-                  className="prose prose-sm mt-4 text-gray-500"
-                  dangerouslySetInnerHTML={{__html: descriptionHtml}}
+              <div className="mt-4">
+                <h2 className="sr-only">Informazioni prodotto</h2>
+                <ProductPrice
+                  price={selectedVariant?.price}
+                  compareAtPrice={selectedVariant?.compareAtPrice}
                 />
               </div>
-            )}
+
+              {/* Trust badges - inline */}
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1.5">
+                  <TruckIcon className="size-5 text-green-600" />
+                  <span>Spedizione gratuita</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheckIcon className="size-5 text-green-600" />
+                  <span>Pagamento sicuro</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <ArrowPathIcon className="size-5 text-green-600" />
+                  <span>Reso facile</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              {descriptionHtml && (
+                <div className="mt-6">
+                  <h3 className="sr-only">Descrizione</h3>
+                  <div
+                    dangerouslySetInnerHTML={{__html: descriptionHtml}}
+                    className="prose prose-sm text-gray-600 max-w-none"
+                  />
+                </div>
+              )}
+
+              {/* Product form with variants and add to cart */}
+              <div className="mt-8">
+                <ProductForm
+                  productOptions={productOptions}
+                  selectedVariant={selectedVariant}
+                />
+              </div>
+
+              {/* Trust section with icons */}
+              <div className="mt-8 grid grid-cols-2 gap-4 rounded-xl bg-gray-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 rounded-full bg-sky-100 p-2">
+                    <TruckIcon className="size-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Spedizione veloce</p>
+                    <p className="text-xs text-gray-500">Consegna in 2-4 giorni</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 rounded-full bg-sky-100 p-2">
+                    <ArrowPathIcon className="size-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Reso gratuito</p>
+                    <p className="text-xs text-gray-500">Entro 30 giorni</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 rounded-full bg-sky-100 p-2">
+                    <ShieldCheckIcon className="size-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Garanzia qualità</p>
+                    <p className="text-xs text-gray-500">Prodotti certificati</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 rounded-full bg-sky-100 p-2">
+                    <CheckBadgeIcon className="size-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Assistenza dedicata</p>
+                    <p className="text-xs text-gray-500">Supporto via chat</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Collapsible details */}
+              <section aria-labelledby="details-heading" className="mt-10">
+                <h2 id="details-heading" className="sr-only">
+                  Dettagli aggiuntivi
+                </h2>
+
+                <div className="divide-y divide-gray-200 border-t border-gray-200">
+                  {productDetails.map((detail) => (
+                    <Disclosure key={detail.name} as="div">
+                      <h3>
+                        <DisclosureButton className="group relative flex w-full items-center justify-between py-6 text-left">
+                          <span className="text-sm font-medium text-gray-900 group-data-open:text-sky-600">
+                            {detail.name}
+                          </span>
+                          <span className="ml-6 flex items-center">
+                            <PlusIcon
+                              aria-hidden="true"
+                              className="block size-6 text-gray-400 group-hover:text-gray-500 group-data-open:hidden"
+                            />
+                            <MinusIcon
+                              aria-hidden="true"
+                              className="hidden size-6 text-sky-400 group-hover:text-sky-500 group-data-open:block"
+                            />
+                          </span>
+                        </DisclosureButton>
+                      </h3>
+                      <DisclosurePanel className="pb-6">
+                        {detail.type === 'html' && detail.content ? (
+                          <div
+                            dangerouslySetInnerHTML={{__html: detail.content}}
+                            className="prose prose-sm text-gray-700"
+                          />
+                        ) : detail.type === 'list' && detail.items ? (
+                          <ul
+                            role="list"
+                            className="list-disc space-y-1 pl-5 text-sm/6 text-gray-700 marker:text-gray-300"
+                          >
+                            {detail.items.map((item) => (
+                              <li key={item} className="pl-2">
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </DisclosurePanel>
+                    </Disclosure>
+                  ))}
+                </div>
+              </section>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <Analytics.ProductView
         data={{
@@ -214,6 +431,15 @@ const PRODUCT_FRAGMENT = `#graphql
     description
     encodedVariantExistence
     encodedVariantAvailability
+    images(first: 10) {
+      nodes {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
     options {
       name
       optionValues {
